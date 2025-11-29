@@ -55,6 +55,10 @@ String presPath;
 String latPath;
 String lngPath;
 String altPath;
+String speedPath;
+String hdopPath;
+String satellitesPath;
+String timeUTCPath;
 
 // BME280 sensor
 Adafruit_BME280 bme; // I2C
@@ -68,6 +72,10 @@ HardwareSerial gpsSerial(2);
 double latitude;
 double longitude;
 double altitude;
+double speed;
+double hdop;
+int satellites;
+String timeUTC;
 
 // Initialize BME280
 void initBME()
@@ -147,12 +155,16 @@ void loop()
             databasePath = "UsersData/" + uid;
 
             // Update database path for sensor readings
-            tempPath = databasePath + "/temperature"; // --> UsersData/<user_uid>/temperature
-            humPath = databasePath + "/humidity";     // --> UsersData/<user_uid>/humidity
-            presPath = databasePath + "/pressure";    // --> UsersData/<user_uid>/pressure
-            latPath = databasePath + "/latitude";     // --> UsersData/<user_uid>/latitude
-            lngPath = databasePath + "/longitude";    // --> UsersData/<user_uid>/longitude
-            altPath = databasePath + "/altitude";     // --> UsersData/<user_uid>/altitude
+            tempPath = databasePath + "/temperature";      // --> UsersData/<user_uid>/temperature
+            humPath = databasePath + "/humidity";          // --> UsersData/<user_uid>/humidity
+            presPath = databasePath + "/pressure";         // --> UsersData/<user_uid>/pressure
+            latPath = databasePath + "/latitude";          // --> UsersData/<user_uid>/latitude
+            lngPath = databasePath + "/longitude";         // --> UsersData/<user_uid>/longitude
+            altPath = databasePath + "/altitude";          // --> UsersData/<user_uid>/altitude
+            speedPath = databasePath + "/speed";           // --> UsersData/<user_uid>/speed
+            hdopPath = databasePath + "/hdop";             // --> UsersData/<user_uid>/hdop
+            satellitesPath = databasePath + "/satellites"; // --> UsersData/<user_uid>/satellites
+            timeUTCPath = databasePath + "/timeUTC";       // --> UsersData/<user_uid>/timeUTC
 
             // Get latest sensor readings
             temperature = bme.readTemperature();
@@ -165,13 +177,33 @@ void loop()
                 latitude = gps.location.lat();
                 longitude = gps.location.lng();
                 altitude = gps.altitude.meters();
+                speed = gps.speed.kmph();
+                hdop = gps.hdop.value() / 100.0;
+                satellites = gps.satellites.value();
+
+                // Format UTC time
+                timeUTC = String(gps.date.year()) + "/" +
+                          String(gps.date.month()) + "/" +
+                          String(gps.date.day()) + "," +
+                          String(gps.time.hour()) + ":" +
+                          String(gps.time.minute()) + ":" +
+                          String(gps.time.second());
 
                 Serial.print("LAT: ");
-                Serial.print(latitude, 6);
-                Serial.print(" LNG: ");
-                Serial.print(longitude, 6);
-                Serial.print(" ALT: ");
-                Serial.println(altitude, 2);
+                Serial.println(latitude, 6);
+                Serial.print("LONG: ");
+                Serial.println(longitude, 6);
+                Serial.print("SPEED (km/h) = ");
+                Serial.println(speed);
+                Serial.print("ALT (m) = ");
+                Serial.println(altitude);
+                Serial.print("HDOP = ");
+                Serial.println(hdop);
+                Serial.print("Satellites = ");
+                Serial.println(satellites);
+                Serial.print("Time in UTC: ");
+                Serial.println(timeUTC);
+                Serial.println("");
             }
             else
             {
@@ -191,6 +223,10 @@ void loop()
                 Database.set<double>(aClient, latPath, latitude, processData, "RTDB_Send_Latitude");
                 Database.set<double>(aClient, lngPath, longitude, processData, "RTDB_Send_Longitude");
                 Database.set<double>(aClient, altPath, altitude, processData, "RTDB_Send_Altitude");
+                Database.set<double>(aClient, speedPath, speed, processData, "RTDB_Send_Speed");
+                Database.set<double>(aClient, hdopPath, hdop, processData, "RTDB_Send_HDOP");
+                Database.set<int>(aClient, satellitesPath, satellites, processData, "RTDB_Send_Satellites");
+                Database.set<String>(aClient, timeUTCPath, timeUTC, processData, "RTDB_Send_TimeUTC");
             }
         }
     }
