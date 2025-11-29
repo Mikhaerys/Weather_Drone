@@ -4,3 +4,22 @@
 .vscode/launch.json
 .vscode/ipch
 .vscode
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.env
+
+# SQLite Database
+*.db
+*.db-journal
+
+# Python logger data
+python/weather_drone_data.db
+python/*.csv
+python/__pycache__/
